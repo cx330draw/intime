@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>鐘點戰</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: url("background.jpeg") center center / cover no-repeat fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 0;
+    }
+
+    .game-wrap {
+      position: relative;
+      z-index: 1;
+      width: min(92vw, 620px);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 24px;
+      padding: 28px 20px 24px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      text-align: center;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: clamp(28px, 5vw, 42px);
+      margin-bottom: 18px;
+      text-shadow: 0 0 10px rgba(255,255,255,0.35);
+    }
+
+    .status {
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      min-height: 34px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .sub-status {
+      color: #ffe9a8;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      min-height: 28px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto 22px;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      perspective: 1000px;
+    }
+
+    .card:disabled {
+      cursor: not-allowed;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      overflow: hidden;
+      backface-visibility: hidden;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+      border: 2px solid rgba(255,255,255,0.18);
+    }
+
+    .card-front {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .card-face img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #ff8a00, #e52e71);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 520px) {
+      .game-wrap {
+        padding: 22px 14px 20px;
+      }
+
+      .board {
+        gap: 10px;
+      }
+
+      .status {
+        font-size: 20px;
+      }
+
+      .sub-status {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrap">
+    <h1>鐘點戰</h1>
+
+    <div class="status" id="timeText">目前累計時間：0 分鐘</div>
+    <div class="sub-status" id="statusText">請選擇一格開始翻牌</div>
+
+    <div class="board" id="board"></div>
+
+    <div class="controls">
+      <button class="btn" id="restartBtn">重新開始</button>
+    </div>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const statusText = document.getElementById("statusText");
+    const timeText = document.getElementById("timeText");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const TOTAL_CARDS = 9;
+    let mineIndex = -1;
+    let gameOver = false;
+    let safeOpenedCount = 0;
+    let totalMinutes = 0;
+
+    function createGame() {
+      board.innerHTML = "";
+      gameOver = false;
+      safeOpenedCount = 0;
+      totalMinutes = 0;
+      mineIndex = Math.floor(Math.random() * TOTAL_CARDS);
+
+      timeText.textContent = "目前累計時間：0 分鐘";
+      statusText.textContent = "請選擇一格開始翻牌";
+
+      for (let i = 0; i < TOTAL_CARDS; i++) {
+        const card = document.createElement("button");
+        card.className = "card";
+        card.dataset.index = i;
+
+        const isMine = i === mineIndex;
+        const backImage = isMine ? "boom.png" : "image2.png";
+
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="image.jpeg" alt="未翻開格子">
+            </div>
+            <div class="card-face card-back">
+              <img src="${backImage}" alt="${isMine ? "地雷" : "時鐘"}">
+            </div>
+          </div>
+        `;
+
+        card.addEventListener("click", () => flipCard(card, isMine));
+        board.appendChild(card);
+      }
+    }
+
+    function flipCard(card, isMine) {
+      if (gameOver) return;
+      if (card.classList.contains("flipped")) return;
+
+      card.classList.add("flipped");
+
+      if (isMine) {
+        gameOver = true;
+        statusText.textContent = "踩到地雷，遊戲結束！";
+        revealAllCards();
+        return;
+      }
+
+      safeOpenedCount++;
+      const gainedMinutes = safeOpenedCount * 10;
+      totalMinutes += gainedMinutes;
+
+      timeText.textContent = `目前累計時間：${totalMinutes} 分鐘`;
+      statusText.textContent = `第 ${safeOpenedCount} 格成功，+${gainedMinutes} 分鐘`;
+
+      if (safeOpenedCount === 8) {
+        gameOver = true;
+        statusText.textContent = `恭喜通關！最終累計 ${totalMinutes} 分鐘`;
+        disableAllCards();
+      }
+    }
+
+    function revealAllCards() {
+      const cards = document.querySelectorAll(".card");
+      cards.forEach(card => {
+        card.classList.add("flipped");
+        card.disabled = true;
+      });
+    }
+
+    function disableAllCards() {
+      const cards = document.querySelectorAll(".card");
+      cards.forEach(card => {
+        card.disabled = true;
+      });
+    }
+
+    restartBtn.addEventListener("click", createGame);
+
+    createGame();
+  </script>
+</body>
+</html>
