@@ -130,13 +130,13 @@
       border: 2px solid rgba(255, 255, 255, 0.18);
     }
 
-    .card-front {
+    .card-front,
+    .card-back {
       background: rgba(255, 255, 255, 0.08);
     }
 
     .card-back {
       transform: rotateY(180deg);
-      background: rgba(255, 255, 255, 0.08);
     }
 
     .card-face img {
@@ -182,30 +182,25 @@
       color: #fff;
       background: linear-gradient(135deg, #ff8a00, #e52e71);
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-      transition: transform 0.2s ease, opacity 0.2s ease;
+      transition: transform 0.2s ease;
     }
 
     .btn:hover {
       transform: translateY(-2px);
     }
 
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    /* 通關彈窗 */
     .modal-overlay {
       position: fixed;
       inset: 0;
       z-index: 1000;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.65);
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
+      transition: 0.3s ease;
     }
 
     .modal-overlay.show {
@@ -214,17 +209,17 @@
     }
 
     .modal {
-      width: min(90vw, 430px);
-      background: rgba(28, 28, 35, 0.96);
+      width: min(90vw, 440px);
+      background: rgba(28, 28, 35, 0.97);
       border: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 24px;
-      padding: 34px 24px 28px;
+      padding: 32px 24px 28px;
       text-align: center;
       box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.5),
         0 0 30px rgba(255, 79, 154, 0.25);
-      transform: scale(0.75);
-      transition: transform 0.35s cubic-bezier(.2, 1.4, .4, 1);
+      transform: scale(0.8);
+      transition: 0.3s ease;
     }
 
     .modal-overlay.show .modal {
@@ -232,19 +227,19 @@
     }
 
     .modal-icon {
-      font-size: 58px;
-      margin-bottom: 10px;
+      font-size: 52px;
+      margin-bottom: 8px;
     }
 
     .modal h2 {
       color: #fff;
-      font-size: 30px;
+      font-size: 28px;
       margin-bottom: 12px;
     }
 
     .modal p {
       color: #ddd;
-      font-size: 19px;
+      font-size: 18px;
       line-height: 1.7;
     }
 
@@ -253,24 +248,41 @@
       color: #ff4f9a;
       font-size: 30px;
       font-weight: 900;
-      margin: 8px 0;
+      margin: 10px 0;
       text-shadow: 0 0 14px rgba(255, 79, 154, 0.4);
     }
 
-    .modal-btn {
+    .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
       margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    .modal-btn {
       border: none;
-      padding: 12px 30px;
+      min-width: 120px;
+      padding: 12px 24px;
       border-radius: 999px;
       font-size: 17px;
       font-weight: bold;
       color: #fff;
       cursor: pointer;
-      background: linear-gradient(135deg, #ff4f9a, #ff8a00);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
     }
 
-    /* 彩帶 */
+    .yes-btn {
+      background: linear-gradient(135deg, #47c46b, #20a54a);
+    }
+
+    .no-btn {
+      background: linear-gradient(135deg, #ff4f9a, #e52e71);
+    }
+
+    .close-btn {
+      background: linear-gradient(135deg, #ff4f9a, #ff8a00);
+    }
+
     #confettiContainer {
       position: fixed;
       inset: 0;
@@ -290,17 +302,11 @@
 
     @keyframes confettiFall {
       0% {
-        transform:
-          translateY(-10vh)
-          rotate(0deg)
-          translateX(0);
+        transform: translateY(-10vh) rotate(0deg) translateX(0);
       }
 
       100% {
-        transform:
-          translateY(115vh)
-          rotate(900deg)
-          translateX(var(--drift));
+        transform: translateY(115vh) rotate(900deg) translateX(var(--drift));
       }
     }
 
@@ -331,10 +337,7 @@
 <body>
 
   <div class="game-wrap">
-
-    <h1>
-      <span class="pink-title">炸</span>翻全場
-    </h1>
+    <h1><span class="pink-title">炸</span>翻全場</h1>
 
     <div class="subtitle">
       要見好就收? 還是賭一波大的!!!?
@@ -351,27 +354,95 @@
     <div class="board" id="board"></div>
 
     <div class="controls">
-      <button class="btn" id="restartBtn">
-        重新開始
-      </button>
+      <button class="btn" id="restartBtn">重新開始</button>
     </div>
-
   </div>
 
-  <!-- 彩帶 -->
   <div id="confettiContainer"></div>
 
-  <!-- 通關視窗 -->
-  <div class="modal-overlay" id="winModal">
-
+  <!-- 第三格停手詢問 -->
+  <div class="modal-overlay" id="stopModal">
     <div class="modal">
+      <div class="modal-icon">🎲</div>
 
+      <h2>要在這裡停手嗎？</h2>
+
+      <p>
+        目前已安全翻開 3 格<br>
+        現在停手可直接獲得
+      </p>
+
+      <span class="reward" id="currentRewardText">
+        0 分鐘
+      </span>
+
+      <p>
+        如果選擇繼續挑戰，<br>
+        之後踩中地雷將會<span style="color:#ff5b7f;font-weight:bold;">獎勵歸零</span>！
+      </p>
+
+      <div class="modal-buttons">
+        <button class="modal-btn yes-btn" id="stopYesBtn">
+          是，停手
+        </button>
+
+        <button class="modal-btn no-btn" id="stopNoBtn">
+          否，繼續賭
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 停手結算視窗 -->
+  <div class="modal-overlay" id="stopResultModal">
+    <div class="modal">
+      <div class="modal-icon">✨</div>
+
+      <h2>成功停手！</h2>
+
+      <p>本局獲得獎勵時數</p>
+
+      <span class="reward" id="stopResultReward">
+        0 分鐘
+      </span>
+
+      <button class="modal-btn close-btn" id="stopResultCloseBtn">
+        確定
+      </button>
+    </div>
+  </div>
+
+  <!-- 踩雷歸零視窗 -->
+  <div class="modal-overlay" id="loseModal">
+    <div class="modal">
+      <div class="modal-icon">💥</div>
+
+      <h2>踩到地雷！</h2>
+
+      <p>
+        挑戰失敗<br>
+        本局獎勵時數全部歸零
+      </p>
+
+      <span class="reward">
+        0 分鐘
+      </span>
+
+      <button class="modal-btn close-btn" id="loseCloseBtn">
+        確定
+      </button>
+    </div>
+  </div>
+
+  <!-- 完美通關 -->
+  <div class="modal-overlay" id="winModal">
+    <div class="modal">
       <div class="modal-icon">🎉</div>
 
       <h2>完美通關！</h2>
 
       <p>
-        成功翻開全部安全格<br>
+        成功翻開全部 8 個安全格<br>
         完全沒有踩中地雷！
       </p>
 
@@ -383,12 +454,10 @@
         總計獲得 120 分鐘獎勵時數
       </p>
 
-      <button class="modal-btn" id="modalCloseBtn">
+      <button class="modal-btn close-btn" id="winCloseBtn">
         太神啦！
       </button>
-
     </div>
-
   </div>
 
   <script>
@@ -397,114 +466,93 @@
     const timeText = document.getElementById("timeText");
     const restartBtn = document.getElementById("restartBtn");
 
+    const stopModal = document.getElementById("stopModal");
+    const currentRewardText = document.getElementById("currentRewardText");
+    const stopYesBtn = document.getElementById("stopYesBtn");
+    const stopNoBtn = document.getElementById("stopNoBtn");
+
+    const stopResultModal = document.getElementById("stopResultModal");
+    const stopResultReward = document.getElementById("stopResultReward");
+    const stopResultCloseBtn = document.getElementById("stopResultCloseBtn");
+
+    const loseModal = document.getElementById("loseModal");
+    const loseCloseBtn = document.getElementById("loseCloseBtn");
+
     const winModal = document.getElementById("winModal");
-    const modalCloseBtn = document.getElementById("modalCloseBtn");
+    const winCloseBtn = document.getElementById("winCloseBtn");
+
     const confettiContainer = document.getElementById("confettiContainer");
 
     const TOTAL_CARDS = 9;
+
+    const SAFE_REWARDS = [
+      10, 10, 10, 10, 10,
+      20, 20,
+      30
+    ];
 
     let mineIndex = -1;
     let gameOver = false;
     let safeOpenedCount = 0;
     let totalMinutes = 0;
     let rewards = [];
-
-    /*
-      安全格：
-      5 格 × 10 分鐘 = 50
-      2 格 × 20 分鐘 = 40
-      1 格 × 30 分鐘 = 30
-
-      總計 = 120 分鐘
-    */
-
-    const SAFE_REWARDS = [
-      10,
-      10,
-      10,
-      10,
-      10,
-      20,
-      20,
-      30
-    ];
+    let waitingForStopDecision = false;
 
     function shuffleArray(array) {
       const newArray = [...array];
 
       for (let i = newArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-
-        [newArray[i], newArray[j]] =
-          [newArray[j], newArray[i]];
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
       }
 
       return newArray;
     }
 
     function createGame() {
-
       board.innerHTML = "";
 
       gameOver = false;
       safeOpenedCount = 0;
       totalMinutes = 0;
+      waitingForStopDecision = false;
 
-      winModal.classList.remove("show");
+      mineIndex = Math.floor(Math.random() * TOTAL_CARDS);
+      rewards = shuffleArray(SAFE_REWARDS);
+
+      closeAllModals();
       confettiContainer.innerHTML = "";
 
-      mineIndex =
-        Math.floor(Math.random() * TOTAL_CARDS);
-
-      rewards =
-        shuffleArray(SAFE_REWARDS);
-
-      timeText.textContent =
-        "目前累計時間：0 分鐘";
-
-      statusText.textContent =
-        "請選擇一格開始翻牌";
+      timeText.textContent = "目前累計時間：0 分鐘";
+      statusText.textContent = "請選擇一格開始翻牌";
 
       let rewardPointer = 0;
 
       for (let i = 0; i < TOTAL_CARDS; i++) {
-
-        const card =
-          document.createElement("button");
+        const card = document.createElement("button");
 
         card.className = "card";
-
         card.dataset.index = i;
 
-        const isMine =
-          i === mineIndex;
+        const isMine = i === mineIndex;
 
         let rewardValue = 0;
 
         if (!isMine) {
-          rewardValue =
-            rewards[rewardPointer];
-
+          rewardValue = rewards[rewardPointer];
           rewardPointer++;
         }
 
-        const backImage =
-          isMine
-            ? "boom.png"
-            : "image2.png";
+        const backImage = isMine ? "boom.png" : "image2.png";
 
         card.innerHTML = `
           <div class="card-inner">
 
             <div class="card-face card-front">
-              <img
-                src="image.jpeg"
-                alt="未翻開格子"
-              >
+              <img src="image.jpeg" alt="未翻開格子">
             </div>
 
             <div class="card-face card-back">
-
               <img
                 src="${backImage}"
                 alt="${isMine ? "地雷" : "獎勵"}"
@@ -515,56 +563,42 @@
                   ? `<div class="reward-text">+${rewardValue} 分鐘</div>`
                   : ""
               }
-
             </div>
 
           </div>
         `;
 
-        card.addEventListener(
-          "click",
-          () =>
-            flipCard(
-              card,
-              isMine,
-              rewardValue
-            )
-        );
+        card.addEventListener("click", () => {
+          flipCard(card, isMine, rewardValue);
+        });
 
         board.appendChild(card);
       }
     }
 
-    function flipCard(
-      card,
-      isMine,
-      rewardValue
-    ) {
-
-      if (gameOver) return;
-
-      if (
-        card.classList.contains("flipped")
-      ) {
-        return;
-      }
+    function flipCard(card, isMine, rewardValue) {
+      if (gameOver || waitingForStopDecision) return;
+      if (card.classList.contains("flipped")) return;
 
       card.classList.add("flipped");
 
       if (isMine) {
-
         gameOver = true;
+        totalMinutes = 0;
 
-        statusText.textContent =
-          "💥 踩到地雷！遊戲結束！";
+        timeText.textContent = "目前累計時間：0 分鐘";
+        statusText.textContent = "💥 踩到地雷！獎勵全部歸零";
 
         revealAllCards();
+
+        setTimeout(() => {
+          loseModal.classList.add("show");
+        }, 650);
 
         return;
       }
 
       safeOpenedCount++;
-
       totalMinutes += rewardValue;
 
       timeText.textContent =
@@ -573,10 +607,25 @@
       statusText.textContent =
         `成功獲得 +${rewardValue} 分鐘！已翻開 ${safeOpenedCount}/8 格`;
 
+      // 第三個安全格翻開後詢問是否停手
+      if (safeOpenedCount === 3) {
+        waitingForStopDecision = true;
+
+        disableUnopenedCards();
+
+        currentRewardText.textContent =
+          `${totalMinutes} 分鐘`;
+
+        setTimeout(() => {
+          stopModal.classList.add("show");
+        }, 650);
+
+        return;
+      }
+
+      // 8 格全部安全
       if (safeOpenedCount === 8) {
-
         gameOver = true;
-
         totalMinutes = 120;
 
         timeText.textContent =
@@ -589,41 +638,88 @@
 
         setTimeout(() => {
           launchConfetti();
-          showWinModal();
-        }, 600);
+          winModal.classList.add("show");
+        }, 650);
       }
     }
 
-    function revealAllCards() {
+    // 選擇停手
+    stopYesBtn.addEventListener("click", () => {
+      stopModal.classList.remove("show");
 
-      const cards =
-        document.querySelectorAll(".card");
+      waitingForStopDecision = false;
+      gameOver = true;
+
+      disableAllCards();
+
+      statusText.textContent =
+        `成功停手！本局獲得 ${totalMinutes} 分鐘`;
+
+      stopResultReward.textContent =
+        `${totalMinutes} 分鐘`;
+
+      setTimeout(() => {
+        stopResultModal.classList.add("show");
+      }, 250);
+    });
+
+    // 選擇繼續
+    stopNoBtn.addEventListener("click", () => {
+      stopModal.classList.remove("show");
+
+      waitingForStopDecision = false;
+
+      enableUnopenedCards();
+
+      statusText.textContent =
+        "繼續挑戰！小心地雷，踩中獎勵歸零！";
+    });
+
+    function revealAllCards() {
+      const cards = document.querySelectorAll(".card");
 
       cards.forEach(card => {
-
         card.classList.add("flipped");
-
         card.disabled = true;
       });
     }
 
     function disableAllCards() {
-
-      const cards =
-        document.querySelectorAll(".card");
+      const cards = document.querySelectorAll(".card");
 
       cards.forEach(card => {
         card.disabled = true;
       });
     }
 
-    function showWinModal() {
+    function disableUnopenedCards() {
+      const cards = document.querySelectorAll(".card");
 
-      winModal.classList.add("show");
+      cards.forEach(card => {
+        if (!card.classList.contains("flipped")) {
+          card.disabled = true;
+        }
+      });
+    }
+
+    function enableUnopenedCards() {
+      const cards = document.querySelectorAll(".card");
+
+      cards.forEach(card => {
+        if (!card.classList.contains("flipped")) {
+          card.disabled = false;
+        }
+      });
+    }
+
+    function closeAllModals() {
+      stopModal.classList.remove("show");
+      stopResultModal.classList.remove("show");
+      loseModal.classList.remove("show");
+      winModal.classList.remove("show");
     }
 
     function launchConfetti() {
-
       confettiContainer.innerHTML = "";
 
       const colors = [
@@ -638,67 +734,38 @@
 
       const amount = 180;
 
-      for (
-        let i = 0;
-        i < amount;
-        i++
-      ) {
+      for (let i = 0; i < amount; i++) {
+        const confetti = document.createElement("div");
 
-        const confetti =
-          document.createElement("div");
-
-        confetti.className =
-          "confetti";
-
-        const color =
-          colors[
-            Math.floor(
-              Math.random() *
-              colors.length
-            )
-          ];
+        confetti.className = "confetti";
 
         confetti.style.background =
-          color;
+          colors[Math.floor(Math.random() * colors.length)];
 
         confetti.style.left =
           Math.random() * 100 + "vw";
 
         confetti.style.width =
-          6 +
-          Math.random() * 8 +
-          "px";
+          6 + Math.random() * 8 + "px";
 
         confetti.style.height =
-          10 +
-          Math.random() * 14 +
-          "px";
+          10 + Math.random() * 14 + "px";
 
         confetti.style.borderRadius =
-          Math.random() > 0.5
-            ? "50%"
-            : "2px";
+          Math.random() > 0.5 ? "50%" : "2px";
 
         confetti.style.animationDuration =
-          2.5 +
-          Math.random() * 3 +
-          "s";
+          2.5 + Math.random() * 3 + "s";
 
         confetti.style.animationDelay =
-          Math.random() * 0.8 +
-          "s";
+          Math.random() * 0.8 + "s";
 
         confetti.style.setProperty(
           "--drift",
-          (
-            Math.random() * 250 -
-            125
-          ) + "px"
+          (Math.random() * 250 - 125) + "px"
         );
 
-        confettiContainer.appendChild(
-          confetti
-        );
+        confettiContainer.appendChild(confetti);
       }
 
       setTimeout(() => {
@@ -706,27 +773,19 @@
       }, 7000);
     }
 
-    restartBtn.addEventListener(
-      "click",
-      createGame
-    );
+    restartBtn.addEventListener("click", createGame);
 
-    modalCloseBtn.addEventListener(
-      "click",
-      () => {
-        winModal.classList.remove("show");
-      }
-    );
+    stopResultCloseBtn.addEventListener("click", () => {
+      stopResultModal.classList.remove("show");
+    });
 
-    winModal.addEventListener(
-      "click",
-      event => {
+    loseCloseBtn.addEventListener("click", () => {
+      loseModal.classList.remove("show");
+    });
 
-        if (event.target === winModal) {
-          winModal.classList.remove("show");
-        }
-      }
-    );
+    winCloseBtn.addEventListener("click", () => {
+      winModal.classList.remove("show");
+    });
 
     createGame();
   </script>
