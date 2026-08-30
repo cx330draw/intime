@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>鐘點戰</title>
+  <title>炸翻全場</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -36,7 +37,7 @@
       width: min(92vw, 620px);
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.15);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 24px;
       padding: 28px 20px 24px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
@@ -45,18 +46,34 @@
 
     h1 {
       color: #fff;
-      font-size: clamp(28px, 5vw, 42px);
+      font-size: clamp(30px, 5vw, 44px);
+      margin-bottom: 8px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+      letter-spacing: 2px;
+    }
+
+    .pink-title {
+      color: #ff4f9a;
+      text-shadow:
+        0 0 8px rgba(255, 79, 154, 0.8),
+        0 0 18px rgba(255, 79, 154, 0.45);
+    }
+
+    .subtitle {
+      color: #ffe9a8;
+      font-size: clamp(16px, 3.5vw, 21px);
+      font-weight: bold;
       margin-bottom: 18px;
-      text-shadow: 0 0 10px rgba(255,255,255,0.35);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
     .status {
       color: #fff;
       font-size: 24px;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       min-height: 34px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 
     .sub-status {
@@ -65,7 +82,7 @@
       font-weight: bold;
       margin-bottom: 20px;
       min-height: 28px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 
     .board {
@@ -109,17 +126,17 @@
       border-radius: 18px;
       overflow: hidden;
       backface-visibility: hidden;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-      border: 2px solid rgba(255,255,255,0.18);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+      border: 2px solid rgba(255, 255, 255, 0.18);
     }
 
     .card-front {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .card-back {
       transform: rotateY(180deg);
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .card-face img {
@@ -128,6 +145,23 @@
       object-fit: cover;
       display: block;
       user-select: none;
+      pointer-events: none;
+    }
+
+    .reward-text {
+      position: absolute;
+      left: 50%;
+      bottom: 8px;
+      transform: translateX(-50%);
+      width: calc(100% - 16px);
+      padding: 5px 4px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.62);
+      color: #fff;
+      font-size: clamp(14px, 3vw, 20px);
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
       pointer-events: none;
     }
 
@@ -147,7 +181,7 @@
       cursor: pointer;
       color: #fff;
       background: linear-gradient(135deg, #ff8a00, #e52e71);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
       transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
@@ -157,6 +191,117 @@
 
     .btn:active {
       transform: translateY(0);
+    }
+
+    /* 通關彈窗 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      width: min(90vw, 430px);
+      background: rgba(28, 28, 35, 0.96);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 34px 24px 28px;
+      text-align: center;
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(255, 79, 154, 0.25);
+      transform: scale(0.75);
+      transition: transform 0.35s cubic-bezier(.2, 1.4, .4, 1);
+    }
+
+    .modal-overlay.show .modal {
+      transform: scale(1);
+    }
+
+    .modal-icon {
+      font-size: 58px;
+      margin-bottom: 10px;
+    }
+
+    .modal h2 {
+      color: #fff;
+      font-size: 30px;
+      margin-bottom: 12px;
+    }
+
+    .modal p {
+      color: #ddd;
+      font-size: 19px;
+      line-height: 1.7;
+    }
+
+    .modal .reward {
+      display: block;
+      color: #ff4f9a;
+      font-size: 30px;
+      font-weight: 900;
+      margin: 8px 0;
+      text-shadow: 0 0 14px rgba(255, 79, 154, 0.4);
+    }
+
+    .modal-btn {
+      margin-top: 22px;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 999px;
+      font-size: 17px;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff4f9a, #ff8a00);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 彩帶 */
+    #confettiContainer {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -30px;
+      width: 10px;
+      height: 18px;
+      opacity: 0.95;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform:
+          translateY(-10vh)
+          rotate(0deg)
+          translateX(0);
+      }
+
+      100% {
+        transform:
+          translateY(115vh)
+          rotate(900deg)
+          translateX(var(--drift));
+      }
     }
 
     @media (max-width: 520px) {
@@ -175,21 +320,75 @@
       .sub-status {
         font-size: 16px;
       }
+
+      .reward-text {
+        font-size: 13px;
+      }
     }
   </style>
 </head>
-<body>
-  <div class="game-wrap">
-    <h1>鐘點戰</h1>
 
-    <div class="status" id="timeText">目前累計時間：0 分鐘</div>
-    <div class="sub-status" id="statusText">請選擇一格開始翻牌</div>
+<body>
+
+  <div class="game-wrap">
+
+    <h1>
+      <span class="pink-title">炸</span>翻全場
+    </h1>
+
+    <div class="subtitle">
+      要見好就收? 還是賭一波大的!!!?
+    </div>
+
+    <div class="status" id="timeText">
+      目前累計時間：0 分鐘
+    </div>
+
+    <div class="sub-status" id="statusText">
+      請選擇一格開始翻牌
+    </div>
 
     <div class="board" id="board"></div>
 
     <div class="controls">
-      <button class="btn" id="restartBtn">重新開始</button>
+      <button class="btn" id="restartBtn">
+        重新開始
+      </button>
     </div>
+
+  </div>
+
+  <!-- 彩帶 -->
+  <div id="confettiContainer"></div>
+
+  <!-- 通關視窗 -->
+  <div class="modal-overlay" id="winModal">
+
+    <div class="modal">
+
+      <div class="modal-icon">🎉</div>
+
+      <h2>完美通關！</h2>
+
+      <p>
+        成功翻開全部安全格<br>
+        完全沒有踩中地雷！
+      </p>
+
+      <span class="reward">
+        +120 分鐘
+      </span>
+
+      <p>
+        總計獲得 120 分鐘獎勵時數
+      </p>
+
+      <button class="modal-btn" id="modalCloseBtn">
+        太神啦！
+      </button>
+
+    </div>
+
   </div>
 
   <script>
@@ -198,91 +397,339 @@
     const timeText = document.getElementById("timeText");
     const restartBtn = document.getElementById("restartBtn");
 
+    const winModal = document.getElementById("winModal");
+    const modalCloseBtn = document.getElementById("modalCloseBtn");
+    const confettiContainer = document.getElementById("confettiContainer");
+
     const TOTAL_CARDS = 9;
+
     let mineIndex = -1;
     let gameOver = false;
     let safeOpenedCount = 0;
     let totalMinutes = 0;
+    let rewards = [];
+
+    /*
+      安全格：
+      5 格 × 10 分鐘 = 50
+      2 格 × 20 分鐘 = 40
+      1 格 × 30 分鐘 = 30
+
+      總計 = 120 分鐘
+    */
+
+    const SAFE_REWARDS = [
+      10,
+      10,
+      10,
+      10,
+      10,
+      20,
+      20,
+      30
+    ];
+
+    function shuffleArray(array) {
+      const newArray = [...array];
+
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [newArray[i], newArray[j]] =
+          [newArray[j], newArray[i]];
+      }
+
+      return newArray;
+    }
 
     function createGame() {
+
       board.innerHTML = "";
+
       gameOver = false;
       safeOpenedCount = 0;
       totalMinutes = 0;
-      mineIndex = Math.floor(Math.random() * TOTAL_CARDS);
 
-      timeText.textContent = "目前累計時間：0 分鐘";
-      statusText.textContent = "請選擇一格開始翻牌";
+      winModal.classList.remove("show");
+      confettiContainer.innerHTML = "";
+
+      mineIndex =
+        Math.floor(Math.random() * TOTAL_CARDS);
+
+      rewards =
+        shuffleArray(SAFE_REWARDS);
+
+      timeText.textContent =
+        "目前累計時間：0 分鐘";
+
+      statusText.textContent =
+        "請選擇一格開始翻牌";
+
+      let rewardPointer = 0;
 
       for (let i = 0; i < TOTAL_CARDS; i++) {
-        const card = document.createElement("button");
+
+        const card =
+          document.createElement("button");
+
         card.className = "card";
+
         card.dataset.index = i;
 
-        const isMine = i === mineIndex;
-        const backImage = isMine ? "boom.png" : "image2.png";
+        const isMine =
+          i === mineIndex;
+
+        let rewardValue = 0;
+
+        if (!isMine) {
+          rewardValue =
+            rewards[rewardPointer];
+
+          rewardPointer++;
+        }
+
+        const backImage =
+          isMine
+            ? "boom.png"
+            : "image2.png";
 
         card.innerHTML = `
           <div class="card-inner">
+
             <div class="card-face card-front">
-              <img src="image.jpeg" alt="未翻開格子">
+              <img
+                src="image.jpeg"
+                alt="未翻開格子"
+              >
             </div>
+
             <div class="card-face card-back">
-              <img src="${backImage}" alt="${isMine ? "地雷" : "時鐘"}">
+
+              <img
+                src="${backImage}"
+                alt="${isMine ? "地雷" : "獎勵"}"
+              >
+
+              ${
+                !isMine
+                  ? `<div class="reward-text">+${rewardValue} 分鐘</div>`
+                  : ""
+              }
+
             </div>
+
           </div>
         `;
 
-        card.addEventListener("click", () => flipCard(card, isMine));
+        card.addEventListener(
+          "click",
+          () =>
+            flipCard(
+              card,
+              isMine,
+              rewardValue
+            )
+        );
+
         board.appendChild(card);
       }
     }
 
-    function flipCard(card, isMine) {
+    function flipCard(
+      card,
+      isMine,
+      rewardValue
+    ) {
+
       if (gameOver) return;
-      if (card.classList.contains("flipped")) return;
+
+      if (
+        card.classList.contains("flipped")
+      ) {
+        return;
+      }
 
       card.classList.add("flipped");
 
       if (isMine) {
+
         gameOver = true;
-        statusText.textContent = "踩到地雷，遊戲結束！";
+
+        statusText.textContent =
+          "💥 踩到地雷！遊戲結束！";
+
         revealAllCards();
+
         return;
       }
 
       safeOpenedCount++;
-      const gainedMinutes = safeOpenedCount * 10;
-      totalMinutes += gainedMinutes;
 
-      timeText.textContent = `目前累計時間：${totalMinutes} 分鐘`;
-      statusText.textContent = `第 ${safeOpenedCount} 格成功，+${gainedMinutes} 分鐘`;
+      totalMinutes += rewardValue;
+
+      timeText.textContent =
+        `目前累計時間：${totalMinutes} 分鐘`;
+
+      statusText.textContent =
+        `成功獲得 +${rewardValue} 分鐘！已翻開 ${safeOpenedCount}/8 格`;
 
       if (safeOpenedCount === 8) {
+
         gameOver = true;
-        statusText.textContent = `恭喜通關！最終累計 ${totalMinutes} 分鐘`;
+
+        totalMinutes = 120;
+
+        timeText.textContent =
+          "目前累計時間：120 分鐘";
+
+        statusText.textContent =
+          "🎉 全部安全格翻開！完美通關！";
+
         disableAllCards();
+
+        setTimeout(() => {
+          launchConfetti();
+          showWinModal();
+        }, 600);
       }
     }
 
     function revealAllCards() {
-      const cards = document.querySelectorAll(".card");
+
+      const cards =
+        document.querySelectorAll(".card");
+
       cards.forEach(card => {
+
         card.classList.add("flipped");
+
         card.disabled = true;
       });
     }
 
     function disableAllCards() {
-      const cards = document.querySelectorAll(".card");
+
+      const cards =
+        document.querySelectorAll(".card");
+
       cards.forEach(card => {
         card.disabled = true;
       });
     }
 
-    restartBtn.addEventListener("click", createGame);
+    function showWinModal() {
+
+      winModal.classList.add("show");
+    }
+
+    function launchConfetti() {
+
+      confettiContainer.innerHTML = "";
+
+      const colors = [
+        "#ff4f9a",
+        "#ffd166",
+        "#06d6a0",
+        "#4cc9f0",
+        "#ffffff",
+        "#ff8a00",
+        "#b517ff"
+      ];
+
+      const amount = 180;
+
+      for (
+        let i = 0;
+        i < amount;
+        i++
+      ) {
+
+        const confetti =
+          document.createElement("div");
+
+        confetti.className =
+          "confetti";
+
+        const color =
+          colors[
+            Math.floor(
+              Math.random() *
+              colors.length
+            )
+          ];
+
+        confetti.style.background =
+          color;
+
+        confetti.style.left =
+          Math.random() * 100 + "vw";
+
+        confetti.style.width =
+          6 +
+          Math.random() * 8 +
+          "px";
+
+        confetti.style.height =
+          10 +
+          Math.random() * 14 +
+          "px";
+
+        confetti.style.borderRadius =
+          Math.random() > 0.5
+            ? "50%"
+            : "2px";
+
+        confetti.style.animationDuration =
+          2.5 +
+          Math.random() * 3 +
+          "s";
+
+        confetti.style.animationDelay =
+          Math.random() * 0.8 +
+          "s";
+
+        confetti.style.setProperty(
+          "--drift",
+          (
+            Math.random() * 250 -
+            125
+          ) + "px"
+        );
+
+        confettiContainer.appendChild(
+          confetti
+        );
+      }
+
+      setTimeout(() => {
+        confettiContainer.innerHTML = "";
+      }, 7000);
+    }
+
+    restartBtn.addEventListener(
+      "click",
+      createGame
+    );
+
+    modalCloseBtn.addEventListener(
+      "click",
+      () => {
+        winModal.classList.remove("show");
+      }
+    );
+
+    winModal.addEventListener(
+      "click",
+      event => {
+
+        if (event.target === winModal) {
+          winModal.classList.remove("show");
+        }
+      }
+    );
 
     createGame();
   </script>
+
 </body>
 </html>
